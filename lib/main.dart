@@ -17,18 +17,26 @@ class CurrencyConverterApp extends StatefulWidget
 class _CurrencyConverterAppState extends State<CurrencyConverterApp>
 {
   final _textFieldController = TextEditingController();
+  final _focusNode = FocusNode();
   final Color _primaryColor = Color(0xff3B4C58);
   final Color _secondaryColor = Color(0xffDBDAD4);
   final String _appTitle = "Currency converter";
   final String _convertButtonText = "Convert";
   final String _textFieldHint = "Amount (GBP)";
-  final String inputNotOkayToastMessage = "Please enter a valid amount of money";
+  final String _inputNotOkayToastMessage = "Please enter a valid amount of money";
   final String _textFieldRegex = "[0-9.]";
   final String _moneyImageSource = "assets/images/money.svg";
+  final String _currencyWhichWeAreConvertingTo = "RON";
+  final int _maximumNumberOfDecimals = 2;
+  final int _maximumNumberOfDots = 1;
   String _convertedValue = "";
 
-  void clearController()
+  void clearController() // method for clearing the controller when the TextField's suffix icon was pressed
   {
+    // https://github.com/flutter/flutter/issues/36948
+    _focusNode.unfocus(); // unfocus all focus nodes // not showing the keyboard after clicking on delete text icon
+    _focusNode.canRequestFocus = false; // disable text field's focus node request
+
     if(_textFieldController.text.length > 0)
       _textFieldController.clear();
 
@@ -39,27 +47,27 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
     });
   }
 
-  double convertToRON(double amountOfMoney)
+  double convertToRON(double amountOfMoney) // method for conversion
   {
     return amountOfMoney * 5.74;
   }
 
-  String handleDotFirstCharacter(String input) // if the first character of the input is a dot, than we add a 0 before it
+  String handleDotFirstCharacter(String input) // method for prepending a 0 to the input if the first character is a dot
   {
     return "0" + input;
   }
 
-  String handleLimitFirstTwoDecimals(String input)
+  String handleLimitFirstNDecimals(String input, int numberOfDecimals) // method for limiting to N decimals
   {
-    return input.substring(0, getPositionOfDot(input) + 2);
+    return input.substring(0, getPositionOfDot(input) + numberOfDecimals);
   }
 
-  String handleRemoveZeroAsTheFirstCharacter(String input)
+  String handleRemoveZeroAsTheFirstCharacter(String input) // method for removing 0 if it's the first character and the following character is also a digit
   {
     return input.substring(1);
   }
 
-  String handleLimitOnlyOneDot(String input)
+  String handleLimitOnlyOneDot(String input) // method for limiting to only one dot
   {
     int currentPosition = -1;
     int positionOfLastDot = -1;
@@ -77,7 +85,7 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
     return input.substring(0, positionOfLastDot);
   }
 
-  int getNumberOfDots(String input)
+  int getNumberOfDots(String input) // method for calculation the number of dots in the input
   {
     int numberOfDots = 0;
 
@@ -91,7 +99,7 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
     return numberOfDots;
   }
 
-  int getPositionOfDot(String input)
+  int getPositionOfDot(String input) // method for getting the position of the dot
   {
     int positionOfDot = -1;
     int currentPosition = 0;
@@ -108,7 +116,7 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
     return positionOfDot;
   }
 
-  int getNumberOfDecimals(String input)
+  int getNumberOfDecimals(String input) // method for getting the exact number of decimals of the input (if it does have)
   {
     int numberOfDecimals = 0;
     int inputLength = input.length;
@@ -120,7 +128,7 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
     return numberOfDecimals;
   }
 
-  bool inputIsOK(String inputValue)
+  bool inputIsOK(String inputValue) // method for checking if the input number is valid for converting
   {
     bool ok = true;
 
@@ -132,53 +140,53 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
     return ok;
   }
 
-  void checkIfThereIsSomethingWrongWithTheInput(String input)
+  void checkIfThereIsSomethingWrongWithTheInput(String input) // method for detecting if there is anything wrong with the input
   {
-    if(input.length == 1 && input[0] == '.')
+    if(input.length == 1 && input[0] == '.') // if the only character in the input is a dot, we prepend 0 to it
     {
       _textFieldController.text = handleDotFirstCharacter(_textFieldController.text);
       _textFieldController.selection = TextSelection.fromPosition(TextPosition(offset: _textFieldController.text.length));
     }
-    else if(getNumberOfDots(input) > 1)
+    else if(getNumberOfDots(input) > _maximumNumberOfDots) // if there are too many dots, we remove the last one
     {
       _textFieldController.text = handleLimitOnlyOneDot(_textFieldController.text);
       _textFieldController.selection = TextSelection.fromPosition(TextPosition(offset: _textFieldController.text.length));
     }
-    else if(getNumberOfDecimals(input) > 2)
+    else if(getNumberOfDecimals(input) > _maximumNumberOfDecimals) // if there are too many decimals, we limit to the maximum number
     {
-      _textFieldController.text = handleLimitFirstTwoDecimals(_textFieldController.text);
+      _textFieldController.text = handleLimitFirstNDecimals(_textFieldController.text, _maximumNumberOfDecimals);
       _textFieldController.selection = TextSelection.fromPosition(TextPosition(offset: _textFieldController.text.length));
     }
-    else if(input.length > 1 && input[0] == '0' && input[1] != '.')
+    else if(input.length > 1 && input[0] == '0' && input[1] != '.') // if the first character is 0 and the following is also a digit, we delete the 0 from the start
     {
       _textFieldController.text = handleRemoveZeroAsTheFirstCharacter(_textFieldController.text);
       _textFieldController.selection = TextSelection.fromPosition(TextPosition(offset: _textFieldController.text.length));
     }
   }
 
-  void setConvertedValue(String inputValue) // the input is ok if it isn't empty and its last character isn't a dot
+  void setConvertedValue(String inputValue) // method for setting the converted value if the input is valid
   {
     setState(()
     {
-      if(inputIsOK(inputValue))
+      if(inputIsOK(inputValue)) // if the input is valid
       {
-        inputValue = convertToRON(double.tryParse(inputValue)).toString();
+        inputValue = convertToRON(double.tryParse(inputValue)).toString(); // setting the input value to the converted one
 
-        if(getNumberOfDecimals(inputValue) > 2)
-          inputValue = handleLimitFirstTwoDecimals(inputValue);
+        if(getNumberOfDecimals(inputValue) > _maximumNumberOfDecimals) // limiting the decimals to the maximum number if there are too many
+          inputValue = handleLimitFirstNDecimals(inputValue, _maximumNumberOfDecimals);
 
-        inputValue += " RON";
-        _convertedValue = inputValue;
+        inputValue += " " + _currencyWhichWeAreConvertingTo; // appending the currency to the converted value
+        _convertedValue = inputValue; // setting the converted value with the value plus the currency
       }
-      else
+      else // if the input isn't ok, we set the converted value to an empty string and we show a not valid input toast message
       {
         _convertedValue = "";
-        showMessage('$inputNotOkayToastMessage');
+        showMessage('$_inputNotOkayToastMessage');
       }
     });
   }
 
-  void showMessage(String message)
+  void showMessage(String message) // method for showing a toast message
   {
     Fluttertoast.showToast(
       msg: message,
@@ -228,6 +236,7 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
                                 padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
                                 child: TextField(
                                   controller: _textFieldController,
+                                  focusNode: _focusNode,
                                   onChanged: (text) => checkIfThereIsSomethingWrongWithTheInput(text),
                                   cursorColor: _primaryColor,
                                   decoration: InputDecoration(
@@ -259,6 +268,7 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
                                     child: OutlinedButton(
                                       style: OutlinedButton.styleFrom(
                                         primary: _primaryColor,
+                                        padding: EdgeInsets.all(10),
                                         side: BorderSide(
                                           width: 2,
                                           color: _primaryColor
