@@ -31,6 +31,12 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
   {
     if(_textFieldController.text.length > 0)
       _textFieldController.clear();
+
+    setState(()
+    {
+      if(_convertedValue.trim().isNotEmpty)
+        _convertedValue = "";
+    });
   }
 
   double convertToRON(double amountOfMoney)
@@ -116,33 +122,14 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
 
   bool inputIsOK(String inputValue)
   {
-    int currentPosition = -1;
+    bool ok = true;
 
     if(inputValue.length == 0) // it's not ok if the input has no characters
-      return false;
+      ok = false;
+    else if(inputValue[inputValue.length - 1] == '.') // it's not ok if the last character of the input is a dot
+      ok = false;
 
-    if(inputValue.length == 1 && inputValue[0] != '.') // it's not ok if the input has 1 character and it's a dot
-      return true;
-
-    if(inputValue[0] == '0' && inputValue[1] != '.') // it's not ok if the first character is 0 and the second one isn't a dot (e.g: 01234)
-      return false;
-
-    if(inputValue[inputValue.length - 1] == '.') // it's not ok if the last character of the input is a dot
-      return false;
-
-    inputValue.runes.forEach((element) // looping through input's characters
-    {
-      var character = new String.fromCharCode(element);
-      ++currentPosition;
-
-      if(currentPosition == 0 && character == '.') // it's not ok if the first character is a dot (e.g: .1234)
-        return false;
-    });
-
-    if(getNumberOfDots(inputValue) > 1) // it's not ok if the input has more than one dot
-      return false;
-
-    return true;
+    return ok;
   }
 
   void checkIfThereIsSomethingWrongWithTheInput(String input)
@@ -180,6 +167,7 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
         if(getNumberOfDecimals(inputValue) > 2)
           inputValue = handleLimitFirstTwoDecimals(inputValue);
 
+        inputValue += " RON";
         _convertedValue = inputValue;
       }
       else
@@ -229,7 +217,7 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
                   color: _secondaryColor,
                   child: Expanded(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         FractionallySizedBox(
@@ -247,7 +235,7 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
                                     hintText: '$_textFieldHint',
                                     hintStyle: TextStyle(
                                       color: _primaryColor,
-                                      fontSize: 20
+                                      fontSize: 25
                                     ),
                                     suffix: IconButton(
                                       icon: Icon(Icons.clear),
@@ -259,7 +247,7 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
                                   keyboardType: TextInputType.numberWithOptions(decimal: true),
                                   style: TextStyle(
                                     color: _primaryColor,
-                                    fontSize: 20
+                                    fontSize: 25
                                   ),
                                   inputFormatters: [FilteringTextInputFormatter.allow(RegExp('$_textFieldRegex'))],
                                 ),
@@ -281,7 +269,7 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
                                         '$_convertButtonText',
                                         style: TextStyle(
                                           color: _primaryColor,
-                                          fontSize: 20,
+                                          fontSize: 25,
                                         ),
                                       ),
                                     ),
@@ -294,9 +282,10 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
                                   "$_convertedValue",
                                   style: TextStyle(
                                     color: _primaryColor,
-                                    fontSize: 20,
+                                    fontSize: 30,
                                     fontWeight: FontWeight.bold,
                                   ),
+                                textAlign: TextAlign.center,
                                 ),
                               )
                             ],
@@ -315,3 +304,5 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
     );
   }
 }
+
+// https://stackoverflow.com/questions/52738610/flutter-mainaxisalignment-spaceevenly-not-working-on-multiple-flexrow-column
