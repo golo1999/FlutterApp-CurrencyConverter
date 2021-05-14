@@ -5,7 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 void main()
 {
-  runApp(CurrencyConverterApp());
+  runApp(MaterialApp(home: CurrencyConverterApp()));
 }
 
 class CurrencyConverterApp extends StatefulWidget
@@ -47,7 +47,7 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
     });
   }
 
-  double convertToRON(double amountOfMoney) // method for conversion
+  double convertToCurrency(double amountOfMoney) // method for conversion
   {
     return amountOfMoney * 5.74;
   }
@@ -170,7 +170,7 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
     {
       if(inputIsOK(inputValue)) // if the input is valid
       {
-        inputValue = convertToRON(double.tryParse(inputValue)).toString(); // setting the input value to the converted one
+        inputValue = convertToCurrency(double.tryParse(inputValue)).toString(); // setting the input value to the converted one
 
         if(getNumberOfDecimals(inputValue) > _maximumNumberOfDecimals) // limiting the decimals to the maximum number if there are too many
           inputValue = handleLimitFirstNDecimals(inputValue, _maximumNumberOfDecimals);
@@ -199,6 +199,8 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
   @override
   Widget build(BuildContext context)
   {
+    final data = MediaQuery.of(context);
+
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -213,96 +215,94 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
               Expanded(
                 flex: 4,
                 child: Container(
-                  child: FittedBox(
-                    fit: BoxFit.fill,
-                    child: SvgPicture.asset('$_moneyImageSource'),
-                    ),
+                  child: SizedBox.expand(
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: SvgPicture.asset('$_moneyImageSource'),
+                      ),
+                  ),
                   )
               ),
               Expanded(
                 flex: 6,
                 child: Container(
                   color: _secondaryColor,
-                  child: Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        FractionallySizedBox(
-                          widthFactor: .75,
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
-                                child: TextField(
-                                  controller: _textFieldController,
-                                  focusNode: _focusNode,
-                                  onChanged: (text) => checkIfThereIsSomethingWrongWithTheInput(text),
-                                  cursorColor: _primaryColor,
-                                  decoration: InputDecoration(
-                                    contentPadding: EdgeInsets.zero,
-                                    hintText: '$_textFieldHint',
-                                    hintStyle: TextStyle(
-                                      color: _primaryColor,
-                                      fontSize: 25
-                                    ),
-                                    suffix: IconButton(
-                                      icon: Icon(Icons.clear),
-                                      onPressed: clearController,
-                                    ),
-                                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: _primaryColor)),
-                                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: _primaryColor)),
-                                  ),
-                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                  style: TextStyle(
-                                    color: _primaryColor,
-                                    fontSize: 25
-                                  ),
-                                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp('$_textFieldRegex'))],
-                                ),
-                              ),
-                              Wrap(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            FractionallySizedBox(
+                              widthFactor: .75,
+                              child: Column(
                                 children: [
                                   Padding(
                                     padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
-                                    child: OutlinedButton(
-                                      style: OutlinedButton.styleFrom(
-                                        primary: _primaryColor,
-                                        padding: EdgeInsets.all(10),
-                                        side: BorderSide(
-                                          width: 2,
-                                          color: _primaryColor
-                                        )
-                                      ),
-                                      onPressed: () => setConvertedValue(_textFieldController.text),
-                                      child: Text(
-                                        '$_convertButtonText',
-                                        style: TextStyle(
+                                    child: TextField(
+                                      controller: _textFieldController,
+                                      focusNode: _focusNode,
+                                      onChanged: (text) => checkIfThereIsSomethingWrongWithTheInput(text),
+                                      cursorColor: _primaryColor,
+                                      decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.zero,
+                                        hintText: '$_textFieldHint',
+                                        hintStyle: TextStyle(
                                           color: _primaryColor,
-                                          fontSize: 25,
+                                          fontSize: data.size.longestSide * 0.025
+                                        ),
+                                        suffix: IconButton(
+                                          icon: Icon(
+                                            Icons.clear,
+                                            size: data.size.longestSide * 0.025,
+                                          ),
+                                          onPressed: clearController,
+                                        ),
+                                        focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: _primaryColor)),
+                                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: _primaryColor)),
+                                      ),
+                                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                      style: TextStyle(
+                                        color: _primaryColor,
+                                        fontSize: data.size.longestSide * 0.025
+                                      ),
+                                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp('$_textFieldRegex'))],
+                                    ),
+                                  ),
+                                  Wrap(
+                                    children: [
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(vertical: data.size.height * 0.05, horizontal: 0), // EdgeInsets.all(MediaQuery.of(context).size.width * 0.05)
+                                        child: OutlinedButton(
+                                          style: OutlinedButton.styleFrom(
+                                            primary: _primaryColor,
+                                            padding: EdgeInsets.all(data.size.height * 0.025),
+                                            side: BorderSide(
+                                              width: 2,
+                                              color: _primaryColor
+                                            )
+                                          ),
+                                          onPressed: () => setConvertedValue(_textFieldController.text),
+                                          child: Text(
+                                            '$_convertButtonText',
+                                            style: TextStyle(
+                                              color: _primaryColor,
+                                              fontSize: data.size.longestSide * 0.05,
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  )
+                                    ],
+                                  ),
+                                  OutputValueWidget(convertedValue: _convertedValue, primaryColor: _primaryColor, data: data)
                                 ],
                               ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
-                                child: Text(
-                                  "$_convertedValue",
-                                  style: TextStyle(
-                                    color: _primaryColor,
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                textAlign: TextAlign.center,
-                                ),
-                              )
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 )
               )
@@ -315,4 +315,34 @@ class _CurrencyConverterAppState extends State<CurrencyConverterApp>
   }
 }
 
-// https://stackoverflow.com/questions/52738610/flutter-mainaxisalignment-spaceevenly-not-working-on-multiple-flexrow-column
+class OutputValueWidget extends StatelessWidget // the Text widget for the converted value
+{
+  const OutputValueWidget(
+  {
+    Key key,
+    @required String convertedValue,
+    @required Color primaryColor,
+    @required this.data,
+  }) : _convertedValue = convertedValue, _primaryColor = primaryColor, super(key: key);
+
+  final String _convertedValue;
+  final Color _primaryColor;
+  final MediaQueryData data;
+
+  @override
+  Widget build(BuildContext context)
+  {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+      child: Text(
+        "$_convertedValue",
+        style: TextStyle(
+          color: _primaryColor,
+          fontSize: data.size.longestSide * 0.05,
+          fontWeight: FontWeight.bold,
+        ),
+      textAlign: TextAlign.center,
+      ),
+    );
+  }
+}
